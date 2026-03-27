@@ -82,11 +82,32 @@
         .fallback.hide {
             display: none;
         }
+        
+        /* Optional: Volume indicator for users */
+        .volume-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-family: sans-serif;
+            font-size: 12px;
+            z-index: 20;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+        
+        .volume-hint.show {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
     <div class="video-container">
-        <video id="bgVideo" autoplay muted loop playsinline preload="auto">
+        <video id="bgVideo" autoplay loop playsinline preload="auto">
             <source src="coming_soon_video.mov" type="video/quicktime">
             Your browser does not support the video tag.
         </video>
@@ -98,13 +119,19 @@
             <p>Coming Soon</p>
         </div>
     </div>
+    
+    <div id="volumeHint" class="volume-hint">
+        🔊 Sound enabled
+    </div>
 
     <script>
         const video = document.getElementById('bgVideo');
         const fallback = document.getElementById('fallback');
+        const volumeHint = document.getElementById('volumeHint');
         
         // Function to handle video sizing
         function adjustVideoSize() {
+            if (!video.videoWidth) return;
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
             const videoAspect = video.videoWidth / video.videoHeight;
@@ -117,6 +144,18 @@
                 video.style.width = 'auto';
                 video.style.height = '100%';
             }
+        }
+        
+        // Set volume to 100% and enable sound
+        video.volume = 1.0;
+        video.muted = false;
+        
+        // Show volume hint briefly
+        function showVolumeHint() {
+            volumeHint.classList.add('show');
+            setTimeout(() => {
+                volumeHint.classList.remove('show');
+            }, 3000);
         }
         
         // Handle video loading and errors
@@ -135,12 +174,33 @@
                 adjustVideoSize();
             });
             
-            // Try to play
+            // Try to play with sound
             video.play().then(() => {
                 fallback.classList.add('hide');
+                showVolumeHint();
             }).catch((error) => {
                 console.log('Autoplay prevented:', error);
+                // Show fallback text and volume instructions
                 fallback.classList.remove('hide');
+                
+                // Add instruction to the fallback
+                const instruction = document.createElement('p');
+                instruction.style.marginTop = '2rem';
+                instruction.style.fontSize = '0.9rem';
+                instruction.style.opacity = '0.6';
+                instruction.innerHTML = 'Tap anywhere to enable sound and play video';
+                document.querySelector('.fallback div').appendChild(instruction);
+                
+                // Add click handler to enable sound and play
+                document.body.addEventListener('click', function playWithSound() {
+                    video.muted = false;
+                    video.volume = 1.0;
+                    video.play().then(() => {
+                        fallback.classList.add('hide');
+                        showVolumeHint();
+                    }).catch(e => console.log('Still blocked:', e));
+                    document.body.removeEventListener('click', playWithSound);
+                });
             });
         } else {
             fallback.classList.remove('hide');
