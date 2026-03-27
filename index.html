@@ -10,27 +10,30 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         html, body {
             width: 100%;
             height: 100%;
             background: black;
             overflow: hidden;
         }
-        
-        /* Simple, reliable full-screen video */
+
         video {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            display: block;
+            /* Fill notch/safe-area on landscape phones */
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
     </style>
 </head>
 <body>
     <video autoplay muted loop playsinline>
         <source src="coming_soon_video.mp4" type="video/mp4">
-        Your browser does not support the video tag.
     </video>
 </body>
 </html>
